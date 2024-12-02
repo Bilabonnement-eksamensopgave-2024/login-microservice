@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 import requests
 import sqlite3
 import bcrypt
@@ -67,10 +67,13 @@ def login():
     
     if result and bcrypt.checkpw(password.encode('utf-8'), result['password']):
         access_token = _create_token(email, result['roles'])
-        return jsonify({
-            "message": "Login successful",
-            "access_token": access_token
-        }), status
+
+        # Create the response and add the token to the Authorization header 
+        response = make_response(jsonify({ "message": "Login successful" }), status) 
+        # Automatically add the token to header
+        response.headers['Authorization'] = f'Bearer {access_token}' 
+        
+        return response
     
     return jsonify({"error": "Invalid email or password"}), 401
 

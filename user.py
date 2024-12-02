@@ -15,12 +15,12 @@ def create_table():
                 )''')
 
         cur.execute(f'''CREATE TABLE {ROLES_TABLE} (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTERGR NOT NULL,
-                    role TEXT NOT NULL,
-                    FOREIGN KEY (user_id) REFERENCES {USERS_TABLE} (id)
-                    UNIQUE (user_id, role)
-                )''')
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                role TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES {USERS_TABLE} (id),
+                UNIQUE (user_id, role)
+            )''')
         
 def register_user(data):
     try:
@@ -39,92 +39,74 @@ def register_user(data):
                 )
             )
 
-            status, result = add_role(data.get('email'), "user")
+        status, result = add_role(data.get('email'), "user")
 
-            if (status != 200):
-                return [status, {"message": f"New user added to database but could not add a role: {result}"}]
+        if (status != 201):
+            return [status, {"message": f"New user added to database but could not add a role: {result}"}]
 
-            return [201, {"message": "New user added to database"}]
+        return [201, {"message": "New user added to database"}]
 
     except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
 def get_user(email):
     try:
+        data = None
+
         with sqlite3.connect(DB_NAME) as conn:
+            conn.row_factory = sqlite3.Row
             cur = conn.cursor()
             
-            cur.execute(
-                f'''
-                SELECT FROM {USERS_TABLE} 
-                WHERE email = ?
-                ''',
-                (
-                    email,
-                )
-            )
+            cur.execute(f'SELECT * FROM {USERS_TABLE} WHERE email = ?', (email,))
             data = cur.fetchone()
-        
-            if data:
-                status, result = get_roles(data["id"])
-
-                if (status != 200):
-                    return [404, {"message": "User not found"}]
-
-                return [200, dict(data)]
-            else:
+            
+            if not data:
                 return [404, {"message": "User not found"}]
+            
+        status, roles = get_roles(data['id'], conn)
+                
+        return [200, {
+            'id': data['id'],
+            'email': data['email'],
+            'password': data['password'],
+            'roles': roles if status == 200 else []
+        }]
 
     except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
-
+    
 def add_role(email, role):
     try:
         status, result = get_user(email)
 
-        if (status != 200):
+        if status != 200:
             return [404, {"message": "User not found"}]
 
         with sqlite3.connect(DB_NAME) as conn:
             cur = conn.cursor()
             
             cur.execute(
-                f'''
-                INSERT OR IGNORE INTO {ROLES_TABLE} 
-                (user_id, role)
-                VALUES (?, ?)
-                ''',
-                (
-                    result["id"],
-                    role
-                )
+                f'INSERT OR IGNORE INTO {ROLES_TABLE} (user_id, role) VALUES (?, ?)',
+                (result['id'], role)
             )
             return [201, {"message": "New user role added to database"}]
             
     except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
-def get_roles(user_id):
+def get_roles(user_id, conn):
     try:
-        with sqlite3.connect(DB_NAME) as conn:
-            cur = conn.cursor()
-            
-            cur.execute(
-                f'''
-                SELECT role FROM {ROLES_TABLE} 
-                WHERE user_id = ?
-                ''',
-                (
-                    user_id,
-                )
-            )
-            data = cur.fetchall()
-        
-            if data:
-                return [200, [row[0] for row in data]]
-            else:
-                return [404, {"message": "No roles found"}]
+        cur = conn.cursor()
+        cur.execute('SELECT role FROM roles WHERE user_id = ?', (user_id,))
+        data = cur.fetchall()
+
+        if data:
+            return [200, [row[0] for row in data]]  # Extract roles into a list
+        else:
+            return [404, {"message": "No roles found"}]
 
     except sqlite3.Error as e:
         return [500, {"error": str(e)}]
+    
+#create_table()

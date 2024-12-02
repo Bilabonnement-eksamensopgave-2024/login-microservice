@@ -3,6 +3,7 @@ import requests
 import sqlite3
 import bcrypt
 import os
+import jwt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from dotenv import load_dotenv
 from flasgger import swag_from
@@ -18,7 +19,7 @@ app = Flask(__name__)
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
-jwt = JWTManager(app)
+
 
 # Initialize Swagger
 init_swagger(app)
@@ -65,11 +66,11 @@ def login():
         return jsonify(result), status
     
     if result and bcrypt.checkpw(password.encode('utf-8'), result['password']):
-        access_token = _create_token(email)
+        access_token = _create_token(email, result['roles'])
         return jsonify({
             "message": "Login successful",
             "access_token": access_token
-        })
+        }), status
     
     return jsonify({"error": "Invalid email or password"}), 401
 
@@ -92,3 +93,7 @@ def _decode_token(token):
         return payload
     except jwt.ExpiredSignatureError: return 'Token expired. Please log in again.' 
     except jwt.InvalidTokenError: return 'Invalid token. Please log in again.'
+
+    
+if __name__ == '__main__':
+    app.run()

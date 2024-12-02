@@ -122,7 +122,7 @@ def get_roles(user_id):
             data = cur.fetchall()
         
             if data:
-                return [200, [row for row in data]]
+                return [200, [row[0] for row in data]]
             else:
                 return [404, {"message": "No roles found"}]
 

@@ -7,6 +7,7 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from dotenv import load_dotenv
 from flasgger import swag_from
 from swagger.config import init_swagger
+from user import register_user, get_user
 
 # Load environment variables from .env file
 load_dotenv()
@@ -19,6 +20,53 @@ jwt = JWTManager(app)
 
 # Initialize Swagger
 init_swagger(app)
+
+@app.route('/register', methods=['POST'])
+@swag_from('swagger/register.yaml')
+def register():
+    data = request.json
+    
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({"error": "Missing email or password"}), 400
+    
+    email = data['email']
+    password = data['password']
+    
+    # Hash the password
+    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    
+    status, result = register_user(
+        {
+        'email': email,
+        'password': hashed
+        }   
+    )
+
+    return jsonify(result), status
+
+
+
+@app.route('/login', methods=['POST'])
+@swag_from('swagger/login.yaml')
+def login():
+    data = request.json
+    
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({"error": "Missing email or password"}), 400
+    
+    email = data['email']
+    password = data['password']
+    
+    
+    if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
+        access_token = create_access_token(identity=username)
+        return jsonify({
+            "message": "Login successful",
+            "access_token": access_token
+        })
+    
+    return jsonify({"error": "Invalid username or password"}), 401
+
 
 
 

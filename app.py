@@ -6,6 +6,7 @@ import os
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from dotenv import load_dotenv
 from flasgger import swag_from
+import datetime
 from swagger.config import init_swagger
 from user import register_user, get_user
 
@@ -15,7 +16,8 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configuration
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY')
 jwt = JWTManager(app)
 
 # Initialize Swagger
@@ -63,14 +65,30 @@ def login():
         return jsonify(result), status
     
     if result and bcrypt.checkpw(password.encode('utf-8'), result['password']):
-        access_token = create_access_token(identity=result['id'])
+        access_token = _create_token(email)
         return jsonify({
             "message": "Login successful",
             "access_token": access_token
         })
     
-    return jsonify({"error": "Invalid username or password"}), 401
+    return jsonify({"error": "Invalid email or password"}), 401
 
 
 
+def _create_token(email, roles): 
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    payload = { 
+            'exp': now + datetime.timedelta(days=1), 
+            'iat': now, 
+            'sub': email, 
+            'roles': roles
+        } 
+    
+    return jwt.encode(payload, SECRET_KEY, algorithm='HS256') 
 
+def _decode_token(token): 
+    try: 
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256']) 
+        return payload
+    except jwt.ExpiredSignatureError: return 'Token expired. Please log in again.' 
+    except jwt.InvalidTokenError: return 'Invalid token. Please log in again.'

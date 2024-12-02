@@ -57,9 +57,13 @@ def login():
     email = data['email']
     password = data['password']
     
+    status, result = get_user(email)
     
-    if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
-        access_token = create_access_token(identity=username)
+    if status != 200:
+        return jsonify(result), status
+    
+    if result and bcrypt.checkpw(password.encode('utf-8'), result['password']):
+        access_token = create_access_token(identity=result['id'])
         return jsonify({
             "message": "Login successful",
             "access_token": access_token

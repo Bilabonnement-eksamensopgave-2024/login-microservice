@@ -42,7 +42,7 @@ def register_user(data):
     except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
-def get_user(data):
+def get_user(email):
     try:
         with sqlite3.connect(DB_NAME) as conn:
             cur = conn.cursor()
@@ -50,11 +50,10 @@ def get_user(data):
             cur.execute(
                 f'''
                 SELECT FROM {USERS_TABLE} 
-                WHERE email = ? AND password = ?
+                WHERE email = ?
                 ''',
                 (
-                    data.get('email'),
-                    data.get('password')
+                    email,
                 )
             )
             data = cur.fetchall()

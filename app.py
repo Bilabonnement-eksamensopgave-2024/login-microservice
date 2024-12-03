@@ -157,6 +157,9 @@ def delete_user(id):
     status, result = user.delete_user(id)
     return jsonify(result), status
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy"}), 200
 
 def _check_password(check_password, id):
     status, result = user.get_user_password(id)
@@ -165,7 +168,6 @@ def _check_password(check_password, id):
         return jsonify(result), status
 
     return bcrypt.checkpw(check_password.encode('utf-8'), result)
-    
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 80)))

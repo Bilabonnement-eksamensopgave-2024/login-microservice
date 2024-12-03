@@ -1,0 +1,43 @@
+# File: swagger/delete_user.yaml
+tags:
+  - name: Users
+summary: Delete a user
+description: Delete a user by their ID
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: integer
+    description: The user ID
+responses:
+  200:
+    description: User deleted successfully
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "User deleted successfully"
+  404:
+    description: User not found
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "User not found"
+  500:
+    description: Internal server error
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An unexpected error occurred"

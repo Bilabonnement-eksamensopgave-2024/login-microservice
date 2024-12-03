@@ -1,0 +1,62 @@
+# File: swagger/login.yaml
+tags:
+  - name: Users
+summary: User login
+description: Authenticate a user and return a JWT token
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          email:
+            type: string
+            example: "user@example.com"
+          password:
+            type: string
+            example: "password123"
+responses:
+  200:
+    description: Login successful
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Login successful"
+            Authorization:
+              type: string
+              example: "Bearer <JWT token>"
+  400:
+    description: Missing email or password
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Missing email or password"
+  401:
+    description: Invalid email or password
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Invalid email or password"
+  500:
+    description: Internal server error
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An unexpected error occurred"

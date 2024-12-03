@@ -1,0 +1,32 @@
+# File: swagger/get_users.yaml
+tags:
+  - name: Users
+summary: Retrieve a list of users
+description: Retrieve a list of users from the database
+parameters: []
+responses:
+  200:
+    description: A list of users
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              email:
+                type: string
+                example: "user@example.com"
+  500:
+    description: Internal server error
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An unexpected error occurred"

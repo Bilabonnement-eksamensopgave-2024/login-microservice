@@ -18,6 +18,57 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 # Initialize Swagger
 init_swagger(app)
+# ----------------------------------------------------- GET /
+@app.route('/', methods=['GET'])
+def service_info():
+    return jsonify({
+        "service": "User Management Microservice",
+        "description": "This microservice handles user-related operations such as registration, login, role management, and user updates.",
+        "endpoints": [
+            {
+                "path": "/register",
+                "method": "POST",
+                "description": "Register a new user",
+                "response": "JSON object with success or error message"
+            },
+            {
+                "path": "/login",
+                "method": "POST",
+                "description": "Authenticate a user and return a token",
+                "response": "JSON object with token or error message"
+            },
+            {
+                "path": "/users",
+                "method": "GET",
+                "description": "Retrieve a list of all users",
+                "response": "JSON array of user objects"
+            },
+            {
+                "path": "/users/<int:id>",
+                "method": "PATCH",
+                "description": "Update email or password of a specific user",
+                "response": "JSON object with success or error message"
+            },
+            {
+                "path": "/users/<int:id>/add-role",
+                "method": "PATCH",
+                "description": "Add a role to a specific user",
+                "response": "JSON object with success or error message"
+            },
+            {
+                "path": "/users/<int:id>/remove-role",
+                "method": "PATCH",
+                "description": "Remove a role from a specific user",
+                "response": "JSON object with success or error message"
+            },
+            {
+                "path": "/users/<int:id>",
+                "method": "DELETE",
+                "description": "Delete a user by ID",
+                "response": "JSON object with success or error message"
+            }
+        ]
+    })
 
 # ----------------------------------------------------- POST /register
 @app.route('/register', methods=['POST'])
@@ -74,14 +125,14 @@ def login():
 
 # ----------------------------------------------------- GET /users
 @app.route('/users', methods=['GET'])
-@swag_from('swagger/login.yaml') # TODO
+@swag_from('swagger/get_users.yaml')
 def get_users():
     status, result = user.get_users()
     return jsonify(result), status
     
 # ----------------------------------------------------- PATCH /users/id
 @app.route('/users/<int:id>', methods=['PATCH'])
-@swag_from('swagger/login.yaml') # TODO
+@swag_from('swagger/patch_user.yaml') 
 def patch_user(id):
     data = request.json
 
@@ -113,7 +164,7 @@ def patch_user(id):
 
 # ----------------------------------------------------- PATCH /users/id/add-role
 @app.route('/users/<int:id>/add-role', methods=['PATCH'])
-@swag_from('swagger/login.yaml') # TODO
+@swag_from('swagger/user_add_role.yaml')
 def user_add_role(id):
     data = request.json
 
@@ -132,7 +183,7 @@ def user_add_role(id):
 
 # ----------------------------------------------------- PATCH /users/id/remove-role
 @app.route('/users/<int:id>/remove-role', methods=['PATCH'])
-@swag_from('swagger/login.yaml') # TODO
+@swag_from('swagger/user_remove_role.yaml')
 def user_remove_role(id):
     data = request.json
 
@@ -152,7 +203,7 @@ def user_remove_role(id):
 
 # ----------------------------------------------------- DELETE /users/id
 @app.route('/users/<int:id>', methods=['DELETE'])
-@swag_from('swagger/login.yaml') # TODO
+@swag_from('swagger/delete_user.yaml')
 def delete_user(id):
     status, result = user.delete_user(id)
     return jsonify(result), status

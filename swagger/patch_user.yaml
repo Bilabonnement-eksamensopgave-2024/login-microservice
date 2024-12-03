@@ -1,0 +1,59 @@
+# File: swagger/patch_user.yaml
+tags:
+  - name: Users
+summary: Update user information
+description: Update a user's email or password
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: integer
+    description: The user ID
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          email:
+            type: string
+            example: "newemail@example.com"
+          new_password:
+            type: string
+            example: "newpassword123"
+          old_password:
+            type: string
+            example: "oldpassword123"
+responses:
+  200:
+    description: User updated successfully
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "User updated successfully"
+  404:
+    description: User not found or wrong old password
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "User not found or wrong old password"
+  500:
+    description: Internal server error
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An unexpected error occurred"

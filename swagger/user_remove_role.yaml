@@ -1,0 +1,53 @@
+# File: swagger/user_remove_role.yaml
+tags:
+  - name: Users
+summary: Remove a role from a user
+description: Remove an existing role from a user
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: integer
+    description: The user ID
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          remove_role:
+            type: string
+            example: "admin"
+responses:
+  200:
+    description: Role removed successfully
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Role removed successfully"
+  404:
+    description: User not found
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "User not found"
+  500:
+    description: Internal server error
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An unexpected error occurred"

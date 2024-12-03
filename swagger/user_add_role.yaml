@@ -1,0 +1,54 @@
+# File: swagger/user_add_role.yaml
+tags:
+  - name: Users
+summary: Add a role to a user
+description: Add a new role to a user
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: integer
+    description: The user ID
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          new_role:
+            type: string
+            example: "admin"
+responses:
+  200:
+    description: Role added successfully
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Role added successfully"
+  404:
+    description: User not found
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "User not found"
+  500:
+    description: Internal server error
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An unexpected error occurred"
+              

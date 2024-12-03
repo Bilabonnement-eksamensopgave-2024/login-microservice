@@ -20,13 +20,9 @@ swagger_config = {
 ##UPDATE##
 template = {
     "info": {
-        "title": "GitHub Stats API Gateway",
-        "description": "API Gateway for managing GitHub statistics and user authentication",
+        "title": "Login microservice",
+        "description": "This microservice handles Login-related operations such as adding, updating, deleting, and retrieving users.",
         "version": "1.0.0",
-        "contact": {
-            "name": "KEA",
-            "url": "https://kea.dk"
-        }
     },
     "securityDefinitions": {
         "Bearer": {

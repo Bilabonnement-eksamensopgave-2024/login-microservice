@@ -49,7 +49,62 @@ def register_user(data):
     except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
-def get_user(email):
+def get_users():
+    try:
+        data = None
+
+        with sqlite3.connect(DB_NAME) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            cur.execute(f'SELECT * FROM {USERS_TABLE}')
+            data = cur.fetchall()
+            
+            if not data:
+                return [404, {"message": "No users found"}]
+
+        newData = []
+        for user in data:
+            status, roles = get_roles(user['id'], conn)
+            
+            newData.append({
+                'id': user['id'],
+                'email': user['email'],
+                'roles': roles if status == 200 else []
+            })
+
+        return [200, newData]
+
+    except sqlite3.Error as e:
+        return [500, {"error": str(e)}]
+
+def get_user(id):
+    try:
+        data = None
+
+        with sqlite3.connect(DB_NAME) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            cur.execute(f'SELECT * FROM {USERS_TABLE} WHERE id = ?', (id,))
+            data = cur.fetchone()
+            
+            if not data:
+                return [404, {"message": "User not found"}]
+            
+        status, roles = get_roles(data['id'], conn)
+                
+        return [200, {
+            'id': data['id'],
+            'email': data['email'],
+            'password': data['password'],
+            'roles': roles if status == 200 else []
+        }]
+
+    except sqlite3.Error as e:
+        return [500, {"error": str(e)}]
+
+def get_user_by_email(email):
     try:
         data = None
 
@@ -74,11 +129,77 @@ def get_user(email):
 
     except sqlite3.Error as e:
         return [500, {"error": str(e)}]
+
+def get_user_password(id):
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            cur.execute(f'SELECT password FROM {USERS_TABLE} WHERE id = ?', (id,))
+            data = cur.fetchone()
+            
+            if not data:
+                return [404, {"message": "User not found"}]
+
+            return [200, data["password"]]
+
+    except sqlite3.Error as e:
+        return [500, {"error": str(e)}]
+
+def update_user(id, data):
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            cur = conn.cursor()
+            
+            query = f'''
+            UPDATE {USERS_TABLE}
+            SET '''
+
+            i = 0
+            values = []
+            for key,value in data.items():
+                if key not in query:
+                    if i > 0:
+                        query+= ", "
+
+                    query += f'{key} = ?'
+                    values.append(value)
+                    i += 1
+
+            query += f" WHERE id = {id}"
+            print(query)
+
+            cur.execute(query, (values))
+            if cur.rowcount == 0:
+                return [404, {"message": "User not found."}]
+            
+            return [200, {"message": "User updated successfully."}]
+
+    except sqlite3.Error as e:
+        return [500, {"error": str(e)}]
     
-    
+def delete_user(id):
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            cur = conn.cursor()
+            
+            cur.execute(
+                f'DELETE FROM {USERS_TABLE} WHERE id = ?',
+                (id,)
+            )
+            cur.execute(
+                f'DELETE FROM {ROLES_TABLE} WHERE user_id = ?',
+                (id,)
+            )
+            return [201, {"message": "User removed from database"}]
+            
+    except sqlite3.Error as e:
+        return [500, {"error": str(e)}]
+
 def add_role(email, role):
     try:
-        status, result = get_user(email)
+        status, result = get_user_by_email(email)
 
         if status != 200:
             return [404, {"message": "User not found"}]
@@ -94,7 +215,27 @@ def add_role(email, role):
             
     except sqlite3.Error as e:
         return [500, {"error": str(e)}]
+
+def remove_role(email, role):
+    try:
+        status, result = get_user_by_email(email)
+
+        if status != 200:
+            return [404, {"message": "User not found"}]
+
+        with sqlite3.connect(DB_NAME) as conn:
+            cur = conn.cursor()
+            
+            cur.execute(
+                f'DELETE FROM {ROLES_TABLE} WHERE user_id = ? and role = ?',
+                (result['id'], role)
+            )
+            return [201, {"message": "User role removed from database"}]
+            
+    except sqlite3.Error as e:
+        return [500, {"error": str(e)}]
     
+
 def get_roles(user_id, conn):
     try:
         cur = conn.cursor()

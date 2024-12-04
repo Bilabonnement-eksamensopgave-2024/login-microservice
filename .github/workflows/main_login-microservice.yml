@@ -26,11 +26,6 @@ jobs:
         username: ${{ secrets.AzureAppService_ContainerUsername_20ffd67403264e3cac14a66bdf37340b }}
         password: ${{ secrets.AzureAppService_ContainerPassword_773fb6922a514e26aacff5154c5ba8eb }}
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc
-
     - name: Build and push container image to registry
       uses: docker/build-push-action@v3
       with:

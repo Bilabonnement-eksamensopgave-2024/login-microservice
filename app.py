@@ -70,6 +70,18 @@ def service_info():
         ]
     })
 
+# ----------------------------------------------------- GET /routes
+@app.route('/routes', methods=['GET'])
+def routes():
+    return jsonify([
+        {"path": "/register", "methods": ["POST"]},
+        {"path": "/login", "methods": ["POST"]},
+        {"path": "/users", "methods": ["GET"]},
+        {"path": "/users/<id>", "methods": ["PATCH", "DELETE"]},
+        {"path": "/users/<id>/add-role", "methods": ["PATCH"]},
+        {"path": "/users/<id>/remove-role", "methods": ["PATCH"]}
+    ])
+
 # ----------------------------------------------------- POST /register
 @app.route('/register', methods=['POST'])
 @swag_from('swagger/register.yaml')

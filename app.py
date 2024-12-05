@@ -231,9 +231,6 @@ def health_check():
 def page_not_found_404(e):
     return jsonify({"message": "Endpoint does not exist"})
 
-@app.errorhandler(405)
-def page_not_found_405(e):
-    return jsonify({"message": "Method not allowed - double check the method you are using"})
 
 # ----------------------------------------------------- Private functions
 def _check_password(check_password, id):

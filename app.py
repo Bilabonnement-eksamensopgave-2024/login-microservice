@@ -229,8 +229,11 @@ def health_check():
 # ----------------------------------------------------- Catch-all route for unmatched endpoints
 @app.errorhandler(404)
 def page_not_found_404(e):
-    return jsonify({"message": "Endpoint does not exist"})
+    return jsonify({"message": "Endpoint does not exist"}), 404
 
+@app.errorhandler(405)
+def page_not_found_405(e):
+    return jsonify({"message": "Method not allowed - double check the method you are using"}), 405
 
 # ----------------------------------------------------- Private functions
 def _check_password(check_password, id):

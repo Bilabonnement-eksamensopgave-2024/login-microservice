@@ -174,7 +174,7 @@ def patch_user(id):
 
 # ----------------------------------------------------- PATCH /users/id/add-role
 @app.route('/users/<int:id>/add-role', methods=['PATCH'])
-@auth.role_required('admin') 
+#@auth.role_required('admin') 
 @swag_from('swagger/user_add_role.yaml')
 def user_add_role(id):
     data = request.json

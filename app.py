@@ -1,23 +1,16 @@
 from flask import Flask, jsonify, request, make_response
-import requests
-import sqlite3
 import bcrypt
 import os
-import jwt
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flasgger import swag_from
-import datetime
 from swagger.config import init_swagger
 import user
 import auth
 
 app = Flask(__name__)
 
-# Configuration
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-
 # Initialize Swagger
 init_swagger(app)
+
 # ----------------------------------------------------- GET /
 @app.route('/', methods=['GET'])
 def service_info():
@@ -29,58 +22,61 @@ def service_info():
                 "path": "/register",
                 "method": "POST",
                 "description": "Register a new user",
-                "response": "JSON object with success or error message"
+                "response": "JSON object with success or error message",
+                "role_required": "none"
             },
             {
                 "path": "/login",
                 "method": "POST",
                 "description": "Authenticate a user and return a token",
-                "response": "JSON object with token or error message"
+                "response": "JSON object with token or error message",
+                "role_required": "none"
             },
             {
                 "path": "/users",
                 "method": "GET",
                 "description": "Retrieve a list of all users",
-                "response": "JSON array of user objects"
+                "response": "JSON array of user objects",
+                "role_required": "admin"
             },
             {
                 "path": "/users/<int:id>",
                 "method": "PATCH",
                 "description": "Update email or password of a specific user",
-                "response": "JSON object with success or error message"
+                "response": "JSON object with success or error message",
+                "role_required": "admin"
             },
             {
                 "path": "/users/<int:id>/add-role",
                 "method": "PATCH",
                 "description": "Add a role to a specific user",
-                "response": "JSON object with success or error message"
+                "response": "JSON object with success or error message",
+                "role_required": "admin"
             },
             {
                 "path": "/users/<int:id>/remove-role",
                 "method": "PATCH",
                 "description": "Remove a role from a specific user",
-                "response": "JSON object with success or error message"
+                "response": "JSON object with success or error message",
+                "role_required": "admin"
             },
             {
                 "path": "/users/<int:id>",
                 "method": "DELETE",
                 "description": "Delete a user by ID",
-                "response": "JSON object with success or error message"
+                "response": "JSON object with success or error message",
+                "role_required": "admin"
+            },
+            {
+                "path": "/health",
+                "method": "GET",
+                "description": "Check the health status of the microservice",
+                "response": "JSON object indicating the health status",
+                "role_required": "none"
             }
         ]
-    })
-
-# ----------------------------------------------------- GET /routes
-@app.route('/routes', methods=['GET'])
-def routes():
-    return jsonify([
-        {"path": "/register", "methods": ["POST"]},
-        {"path": "/login", "methods": ["POST"]},
-        {"path": "/users", "methods": ["GET"]},
-        {"path": "/users/<id>", "methods": ["PATCH", "DELETE"]},
-        {"path": "/users/<id>/add-role", "methods": ["PATCH"]},
-        {"path": "/users/<id>/remove-role", "methods": ["PATCH"]}
-    ])
+    }
+)
 
 # ----------------------------------------------------- POST /register
 @app.route('/register', methods=['POST'])
@@ -101,7 +97,7 @@ def register():
         {
         'email': email,
         'password': hashed
-        }   
+        }
     )
 
     return jsonify(result), status
@@ -128,8 +124,8 @@ def login():
 
         # Create the response and add the token to the Authorization header 
         response = make_response(jsonify({ "message": "Login successful", "Authorization": f'Bearer {access_token}'}), status) 
-        # Automatically add the token to header
-        response.headers['Authorization'] = f'Bearer {access_token}' 
+        # Automatically set token as a cookie
+        response.set_cookie('Authorization', access_token, httponly=True, secure=True)
         
         return response
     
@@ -137,6 +133,7 @@ def login():
 
 # ----------------------------------------------------- GET /users
 @app.route('/users', methods=['GET'])
+@auth.role_required('admin') 
 @swag_from('swagger/get_users.yaml')
 def get_users():
     status, result = user.get_users()
@@ -144,6 +141,7 @@ def get_users():
     
 # ----------------------------------------------------- PATCH /users/id
 @app.route('/users/<int:id>', methods=['PATCH'])
+@auth.role_required('admin') 
 @swag_from('swagger/patch_user.yaml') 
 def patch_user(id):
     data = request.json
@@ -176,6 +174,7 @@ def patch_user(id):
 
 # ----------------------------------------------------- PATCH /users/id/add-role
 @app.route('/users/<int:id>/add-role', methods=['PATCH'])
+@auth.role_required('admin') 
 @swag_from('swagger/user_add_role.yaml')
 def user_add_role(id):
     data = request.json
@@ -195,6 +194,7 @@ def user_add_role(id):
 
 # ----------------------------------------------------- PATCH /users/id/remove-role
 @app.route('/users/<int:id>/remove-role', methods=['PATCH'])
+@auth.role_required('admin') 
 @swag_from('swagger/user_remove_role.yaml')
 def user_remove_role(id):
     data = request.json
@@ -215,6 +215,7 @@ def user_remove_role(id):
 
 # ----------------------------------------------------- DELETE /users/id
 @app.route('/users/<int:id>', methods=['DELETE'])
+@auth.role_required('admin') 
 @swag_from('swagger/delete_user.yaml')
 def delete_user(id):
     status, result = user.delete_user(id)
@@ -225,6 +226,16 @@ def delete_user(id):
 def health_check():
     return jsonify({"status": "healthy"}), 200
 
+# ----------------------------------------------------- Catch-all route for unmatched endpoints
+@app.errorhandler(404)
+def page_not_found_404(e):
+    return jsonify({"message": "Endpoint does not exist"})
+
+@app.errorhandler(405)
+def page_not_found_405(e):
+    return jsonify({"message": "Method not allowed - double check the method you are using"})
+
+# ----------------------------------------------------- Private functions
 def _check_password(check_password, id):
     status, result = user.get_user_password(id)
 
@@ -234,4 +245,4 @@ def _check_password(check_password, id):
     return bcrypt.checkpw(check_password.encode('utf-8'), result)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 80)))
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5005)))

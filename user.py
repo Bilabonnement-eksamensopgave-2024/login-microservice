@@ -1,27 +1,24 @@
 import sqlite3
 from dotenv import load_dotenv
 import os
-import sqlitecloud
 
-#DB_NAME = "users.db"
 # Load environment variables from .env file
 load_dotenv()
-DB_NAME = os.getenv("DB_NAME")
-
+DB_PATH = os.getenv('DB_PATH', "users.db")
 USERS_TABLE = "users"
 ROLES_TABLE = "roles"
 
 def create_table():
-    with sqlitecloud.connect(DB_NAME) as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         cur = conn.cursor()
 
-        cur.execute(f'''CREATE TABLE {USERS_TABLE} (
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS {USERS_TABLE} (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     email TEXT NOT NULL UNIQUE,
                     password TEXT NOT NULL
                 )''')
 
-        cur.execute(f'''CREATE TABLE {ROLES_TABLE} (
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS {ROLES_TABLE} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 role TEXT NOT NULL,
@@ -31,7 +28,7 @@ def create_table():
         
 def register_user(data):
     try:
-        with sqlitecloud.connect(DB_NAME) as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             cur = conn.cursor()
             
             cur.execute(
@@ -53,15 +50,15 @@ def register_user(data):
 
         return [201, {"message": "New user added to database"}]
 
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
 def get_users():
     try:
         data = None
 
-        with sqlitecloud.connect(DB_NAME) as conn:
-            conn.row_factory = sqlitecloud.Row
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
             cur = conn.cursor()
             
             cur.execute(f'SELECT * FROM {USERS_TABLE}')
@@ -82,15 +79,15 @@ def get_users():
 
         return [200, newData]
 
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
 
 def get_user(id):
     try:
         data = None
 
-        with sqlitecloud.connect(DB_NAME) as conn:
-            conn.row_factory = sqlitecloud.Row
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
             cur = conn.cursor()
             
             cur.execute(f'SELECT * FROM {USERS_TABLE} WHERE id = ?', (id,))
@@ -108,15 +105,15 @@ def get_user(id):
             'roles': roles if status == 200 else []
         }]
 
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
 
 def get_user_by_email(email):
     try:
         data = None
 
-        with sqlitecloud.connect(DB_NAME) as conn:
-            conn.row_factory = sqlitecloud.Row
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
             cur = conn.cursor()
             
             cur.execute(f'SELECT * FROM {USERS_TABLE} WHERE email = ?', (email,))
@@ -134,13 +131,13 @@ def get_user_by_email(email):
             'roles': roles if status == 200 else []
         }]
 
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
 
 def get_user_password(id):
     try:
-        with sqlitecloud.connect(DB_NAME) as conn:
-            conn.row_factory = sqlitecloud.Row
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
             cur = conn.cursor()
             
             cur.execute(f'SELECT password FROM {USERS_TABLE} WHERE id = ?', (id,))
@@ -151,12 +148,12 @@ def get_user_password(id):
 
             return [200, data["password"]]
 
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
 
 def update_user(id, data):
     try:
-        with sqlitecloud.connect(DB_NAME) as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             cur = conn.cursor()
             
             query = f'''
@@ -183,12 +180,12 @@ def update_user(id, data):
             
             return [200, {"message": "User updated successfully."}]
 
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
 def delete_user(id):
     try:
-        with sqlitecloud.connect(DB_NAME) as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             cur = conn.cursor()
             
             cur.execute(
@@ -201,7 +198,7 @@ def delete_user(id):
             )
             return [201, {"message": "User removed from database"}]
             
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
 
 def add_role(email, role):
@@ -211,7 +208,7 @@ def add_role(email, role):
         if status != 200:
             return [404, {"message": "User not found"}]
 
-        with sqlitecloud.connect(DB_NAME) as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             cur = conn.cursor()
             
             cur.execute(
@@ -220,7 +217,7 @@ def add_role(email, role):
             )
             return [201, {"message": "New user role added to database"}]
             
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
 
 def remove_role(email, role):
@@ -230,7 +227,7 @@ def remove_role(email, role):
         if status != 200:
             return [404, {"message": "User not found"}]
 
-        with sqlitecloud.connect(DB_NAME) as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             cur = conn.cursor()
             
             cur.execute(
@@ -239,7 +236,7 @@ def remove_role(email, role):
             )
             return [201, {"message": "User role removed from database"}]
             
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
 
@@ -254,7 +251,7 @@ def get_roles(user_id, conn):
         else:
             return [404, {"message": "No roles found"}]
 
-    except sqlitecloud.Error as e:
+    except sqlite3.Error as e:
         return [500, {"error": str(e)}]
     
-#create_table()
+create_table()

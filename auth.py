@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
 import os
 import jwt
 import datetime
@@ -10,7 +10,6 @@ load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 def create_token(email, roles):
-    print(SECRET_KEY)
     now = datetime.datetime.now(tz=datetime.timezone.utc)
     payload = {
         'exp': now + datetime.timedelta(days=1),
@@ -33,9 +32,9 @@ def role_required(*roles):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            token = request.headers.get('Authorization')
+            token = request.cookies.get('Authorization')
             if not token:
-                return jsonify({'message': 'Token is missing!'}), 401
+                return jsonify({'message': 'Token is missing! You do not have permission to access this endpoint!'}), 401
 
             try:
                 payload = decode_token(token)

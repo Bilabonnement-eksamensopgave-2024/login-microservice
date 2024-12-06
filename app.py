@@ -5,8 +5,15 @@ from flasgger import swag_from
 from swagger.config import init_swagger
 import user
 import auth
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
+
+# Configuration
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 # Initialize Swagger
 init_swagger(app)

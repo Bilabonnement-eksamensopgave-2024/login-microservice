@@ -18,6 +18,15 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 # Initialize Swagger
 init_swagger(app)
 
+# ----------------------------------------------------- Private functions
+def _check_password(check_password, id):
+    status, result = user.get_user_password(id)
+
+    if status != 200:
+        return jsonify(result), status
+
+    return bcrypt.checkpw(check_password.encode('utf-8'), result)
+
 # ----------------------------------------------------- GET /
 @app.route('/', methods=['GET'])
 def service_info():
@@ -80,10 +89,16 @@ def service_info():
                 "description": "Check the health status of the microservice",
                 "response": "JSON object indicating the health status",
                 "role_required": "none"
+            },
+            {
+                "path": "/logout",
+                "method": "POST",
+                "description": "Logout and delete the authorization cookie",
+                "response": "JSON object with a success message",
+                "role_required": "none"
             }
         ]
-    }
-)
+    })
 
 # ----------------------------------------------------- POST /register
 @app.route('/register', methods=['POST'])
@@ -278,15 +293,6 @@ def page_not_found_404(e):
 @app.errorhandler(405)
 def page_not_found_405(e):
     return jsonify({"message": "Method not allowed - double check the method you are using"}), 405
-
-# ----------------------------------------------------- Private functions
-def _check_password(check_password, id):
-    status, result = user.get_user_password(id)
-
-    if status != 200:
-        return jsonify(result), status
-
-    return bcrypt.checkpw(check_password.encode('utf-8'), result)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5005)))

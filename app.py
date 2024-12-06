@@ -181,7 +181,7 @@ def patch_user(id):
 
 # ----------------------------------------------------- PATCH /users/id/add-role
 @app.route('/users/<int:id>/add-role', methods=['PATCH'])
-#@auth.role_required('admin') 
+@auth.role_required('admin') 
 @swag_from('swagger/user_add_role.yaml')
 def user_add_role(id):
     data = request.json
@@ -193,6 +193,17 @@ def user_add_role(id):
 
         if status == 200:
             role_status, role_result = user.add_role(result['email'], new_role)
+
+            if role_status == 201:
+                access_token = auth.create_token(result['email'], result['roles'])
+
+                # Create the response and add the token to the Authorization header 
+                response = make_response(jsonify(role_result), status) 
+                # Automatically set token as a cookie
+                response.set_cookie('Authorization', access_token, httponly=True, secure=True)
+                
+                return response
+            
             return jsonify(role_result), role_status
 
         return jsonify(result), status
@@ -213,6 +224,17 @@ def user_remove_role(id):
 
         if status == 200:
             role_status, role_result = user.remove_role(result['email'], remove_role)
+
+            if role_status == 201:
+                access_token = auth.create_token(result['email'], result['roles'])
+
+                # Create the response and add the token to the Authorization header 
+                response = make_response(jsonify(role_result), status) 
+                # Automatically set token as a cookie
+                response.set_cookie('Authorization', access_token, httponly=True, secure=True)
+                
+                return response
+            
             return jsonify(role_result), role_status
 
         return jsonify(result), status
@@ -227,6 +249,21 @@ def user_remove_role(id):
 def delete_user(id):
     status, result = user.delete_user(id)
     return jsonify(result), status
+
+
+# ----------------------------------------------------- POST /logout
+@app.route('/logout', methods=['POST'])
+def logout():
+    response = make_response(jsonify({"message": "Logout successful"}))
+    
+    # Set the cookie with the same name to expire in the past so the browser will delete the cookie
+    response.set_cookie('Authorization', '', expires=0, httponly=True, secure=True)
+    
+    return response
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5005)))
+
 
 # ----------------------------------------------------- GET /health
 @app.route('/health', methods=['GET'])

@@ -1,9 +1,14 @@
-# File: swagger/get_users.yaml
 tags:
   - name: Users
 summary: Retrieve a list of users
 description: Retrieve a list of users from the database
-parameters: []
+parameters:
+  - in: cookie
+    name: Authorization
+    required: true
+    schema:
+      type: string
+    description: JWT token with one of the required roles - ['admin']
 responses:
   200:
     description: A list of users
@@ -20,6 +25,16 @@ responses:
               email:
                 type: string
                 example: "user@example.com"
+  404:
+    description: Users not found
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Users not found"
   500:
     description: Internal server error
     content:
@@ -30,3 +45,8 @@ responses:
             error:
               type: string
               example: "An unexpected error occurred"
+security:
+  - cookieAuth: []
+x-swagger-router-controller: get_users
+x-swagger-roles: 
+  - admin

@@ -1,21 +1,23 @@
-# File: swagger/login.yaml
 tags:
   - name: Users
 summary: User login
-description: Authenticate a user and return a JWT token
-requestBody:
-  required: true
-  content:
-    application/json:
-      schema:
-        type: object
-        properties:
-          email:
+description: Authenticate a user and return a JWT token. Must include "email" and "password".
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        password:
             type: string
-            example: "user@example.com"
-          password:
-            type: string
-            example: "password123"
+            example: "secure_password123"
+        email:
+          type: string
+          example: "john_doe@mail.com"
 responses:
   200:
     description: Login successful

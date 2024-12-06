@@ -1,21 +1,23 @@
-# File: swagger/register.yaml
 tags:
   - name: Users
 summary: Register a new user
-description: Register a new user with an email and password
-requestBody:
-  required: true
-  content:
-    application/json:
-      schema:
-        type: object
-        properties:
-          email:
-            type: string
-            example: "user@example.com"
-          password:
+description: Register a new user with an "email" and "password"
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        password:
             type: string
             example: "password123"
+        email:
+          type: string
+          example: "user@mail.com"
 responses:
   200:
     description: User registered successfully
@@ -40,6 +42,16 @@ responses:
             error:
               type: string
               example: "Missing email or password"
+  404:
+    description: User already exists
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "User already exists"
   500:
     description: Internal server error
     content:

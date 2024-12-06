@@ -1,4 +1,3 @@
-# File: swagger/delete_user.yaml
 tags:
   - name: Users
 summary: Delete a user
@@ -10,6 +9,12 @@ parameters:
     schema:
       type: integer
     description: The user ID
+  - in: cookie
+    name: Authorization
+    required: true
+    schema:
+      type: string
+    description: JWT token with one of the required roles - ['admin']
 responses:
   200:
     description: User deleted successfully
@@ -41,3 +46,8 @@ responses:
             error:
               type: string
               example: "An unexpected error occurred"
+security:
+  - cookieAuth: []
+x-swagger-router-controller: delete_user
+x-swagger-roles: 
+  - admin

@@ -1,8 +1,7 @@
-# File: swagger/patch_user.yaml
 tags:
   - name: Users
 summary: Update user information
-description: Update a user's email or password
+description: Update a user's email or password. Must include "email" and/or both "new_password" and "old_password"
 parameters:
   - in: path
     name: id
@@ -10,22 +9,28 @@ parameters:
     schema:
       type: integer
     description: The user ID
-requestBody:
-  required: true
-  content:
-    application/json:
-      schema:
-        type: object
-        properties:
-          email:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      optional:
+        - email
+        - new_password
+        - old_password
+      properties:
+        new_password:
             type: string
-            example: "newemail@example.com"
-          new_password:
-            type: string
-            example: "newpassword123"
-          old_password:
-            type: string
-            example: "oldpassword123"
+            example: "new_secure_password123"
+        old_password:
+          type: string
+          example: "secure_password123"
+  - in: cookie
+    name: Authorization
+    required: true
+    schema:
+      type: string
+    description: JWT token with one of the required roles - ['admin']
 responses:
   200:
     description: User updated successfully
@@ -57,3 +62,8 @@ responses:
             error:
               type: string
               example: "An unexpected error occurred"
+security:
+  - cookieAuth: []
+x-swagger-router-controller: patch_user
+x-swagger-roles: 
+  - admin

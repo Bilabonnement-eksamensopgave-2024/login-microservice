@@ -4,7 +4,7 @@ import os
 from flasgger import swag_from
 from swagger.config import init_swagger
 import user
-#import auth
+import auth
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -140,7 +140,7 @@ def login():
 
 # ----------------------------------------------------- GET /users
 @app.route('/users', methods=['GET'])
-#@auth.role_required('admin') 
+@auth.role_required('admin') 
 @swag_from('swagger/get_users.yaml')
 def get_users():
     status, result = user.get_users()
@@ -148,7 +148,7 @@ def get_users():
     
 # ----------------------------------------------------- PATCH /users/id
 @app.route('/users/<int:id>', methods=['PATCH'])
-#@auth.role_required('admin') 
+@auth.role_required('admin') 
 @swag_from('swagger/patch_user.yaml') 
 def patch_user(id):
     data = request.json
@@ -201,7 +201,7 @@ def user_add_role(id):
 
 # ----------------------------------------------------- PATCH /users/id/remove-role
 @app.route('/users/<int:id>/remove-role', methods=['PATCH'])
-#@auth.role_required('admin') 
+@auth.role_required('admin') 
 @swag_from('swagger/user_remove_role.yaml')
 def user_remove_role(id):
     data = request.json
@@ -222,7 +222,7 @@ def user_remove_role(id):
 
 # ----------------------------------------------------- DELETE /users/id
 @app.route('/users/<int:id>', methods=['DELETE'])
-#@auth.role_required('admin') 
+@auth.role_required('admin') 
 @swag_from('swagger/delete_user.yaml')
 def delete_user(id):
     status, result = user.delete_user(id)

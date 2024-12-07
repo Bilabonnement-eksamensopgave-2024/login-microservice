@@ -145,7 +145,7 @@ def login():
         access_token = auth.create_token(email, result['roles'])
 
         # Create the response and add the token to the Authorization header 
-        response = make_response(jsonify({ "message": "Login successful", "Authorization": f'Bearer {access_token}'}), status) 
+        response = make_response(jsonify({ "message": "Login successful", "Authorization": access_token}), status) 
         # Automatically set token as a cookie
         response.set_cookie('Authorization', access_token, httponly=True, secure=True)
         

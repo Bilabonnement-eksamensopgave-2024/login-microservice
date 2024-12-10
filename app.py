@@ -208,16 +208,6 @@ def user_add_role(id):
 
         if status == 200:
             role_status, role_result = user.add_role(result['email'], new_role)
-
-            if role_status == 201:
-                access_token = auth.create_token(result['email'], result['roles'])
-
-                # Create the response and add the token to the Authorization header 
-                response = make_response(jsonify(role_result), status) 
-                # Automatically set token as a cookie
-                response.set_cookie('Authorization', access_token, httponly=True, secure=True)
-                
-                return response
             
             return jsonify(role_result), role_status
 
@@ -239,16 +229,6 @@ def user_remove_role(id):
 
         if status == 200:
             role_status, role_result = user.remove_role(result['email'], remove_role)
-
-            if role_status == 201:
-                access_token = auth.create_token(result['email'], result['roles'])
-
-                # Create the response and add the token to the Authorization header 
-                response = make_response(jsonify(role_result), status) 
-                # Automatically set token as a cookie
-                response.set_cookie('Authorization', access_token, httponly=True, secure=True)
-                
-                return response
             
             return jsonify(role_result), role_status
 

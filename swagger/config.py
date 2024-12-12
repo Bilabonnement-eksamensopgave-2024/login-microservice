@@ -28,23 +28,14 @@ template = {
             "type": "apiKey",
             "name": "Authorization",
             "in": "cookie",
-            "description": "JWT Authorization cookie with required roles. Example: \"Authorization: {token}\""
+            "description": "Example: '{token}'"
         }
     },
     "security": [
         {
             "cookieAuth": []
         }
-    ],
-    "components": {
-        "securitySchemes": {
-            "cookieAuth": {
-                "type": "apiKey",
-                "name": "Authorization",
-                "in": "cookie"
-            }
-        }
-    }
+    ]
 }
 
 def init_swagger(app):

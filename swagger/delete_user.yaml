@@ -11,7 +11,7 @@ parameters:
     description: The user ID
   - in: cookie
     name: Authorization
-    required: true
+    required: false
     schema:
       type: string
     description: JWT token with one of the required roles - ['admin']
@@ -48,6 +48,3 @@ responses:
               example: "An unexpected error occurred"
 security:
   - cookieAuth: []
-x-swagger-router-controller: delete_user
-x-swagger-roles: 
-  - admin
